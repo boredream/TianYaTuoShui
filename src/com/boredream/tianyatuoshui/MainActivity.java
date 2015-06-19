@@ -10,20 +10,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.widget.ListView;
 
 import com.android.volley.VolleyError;
 import com.boredream.volley.BDListener;
-import com.boredream.volley.BDVolley;
 import com.boredream.volley.BDVolleyHttp;
-import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
-import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 
 public class MainActivity extends Activity {
 	
@@ -40,31 +32,11 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		init();
-		
 		String url = "http://bbs.tianya.cn/post-96-564625-"+page+".shtml";
 		loadUrl(url);
 		
 		lv_comments = (ListView) findViewById(R.id.lv_comments);
 		
-	}
-
-	private void init() {
-		BDVolley.init(this);
-		DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
-			.cacheOnDisc()
-			.cacheInMemory()
-			.bitmapConfig(Bitmap.Config.RGB_565)
-			.displayer(new RoundedBitmapDisplayer(4)).build();
-		// 初始化图片处理
-		ImageLoaderConfiguration config = new ImageLoaderConfiguration
-				.Builder(this)
-				.threadPriority(Thread.NORM_PRIORITY - 2)
-				.discCacheFileNameGenerator(new Md5FileNameGenerator())
-				.tasksProcessingOrder(QueueProcessingType.LIFO)
-				.defaultDisplayImageOptions(defaultOptions)
-				.build();
-		ImageLoader.getInstance().init(config);
 	}
 
 	private void loadUrl(String url) {
