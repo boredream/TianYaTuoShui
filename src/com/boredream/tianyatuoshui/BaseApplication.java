@@ -21,6 +21,9 @@ public class BaseApplication extends Application {
 		DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
 				.cacheOnDisc()
 				.cacheInMemory()
+				.showStubImage(R.drawable.loading)
+				.showImageForEmptyUri(R.drawable.loading)
+				.showImageOnFail(R.drawable.loading)
 				.bitmapConfig(Bitmap.Config.RGB_565)
 				.displayer(new RoundedBitmapDisplayer(4)).build();
 		// 初始化图片处理

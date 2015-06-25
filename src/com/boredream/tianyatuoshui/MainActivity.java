@@ -26,13 +26,16 @@ public class MainActivity extends Activity {
 	
 	private ArrayList<BbsComment> comments = new ArrayList<BbsComment>();
 	
+	// 贴图帖子
+	String url = "http://bbs.tianya.cn/post-no04-2610476-"+page+".shtml";
+//	// 会做饭男人的生活
+//	String url = "http://bbs.tianya.cn/post-96-564625-"+page+".shtml";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		String url = "http://bbs.tianya.cn/post-96-564625-"+page+".shtml";
 		loadUrl(url);
 		
 		lv_comments = (ListView) findViewById(R.id.lv_comments);
@@ -71,7 +74,6 @@ public class MainActivity extends Activity {
 					}
 				}
 				
-				System.out.println(comments);
 				lv_comments.setAdapter(new CommentAdapter(MainActivity.this, comments));
 			}
 		});
@@ -130,25 +132,22 @@ public class MainActivity extends Activity {
 					&& element.attr("class").equals("bd")) {
 				comment = new BbsComment();
 				
-				// img urls
+				// img
 				ArrayList<String> imgUrls = new ArrayList<String>();
 				Elements allContentElement = element.getAllElements();
 				for(int j=0; j<allContentElement.size(); j++) {
 					Element contentElement = allContentElement.get(j);
 					if(contentElement.nodeName().equals("img")) {
+						BbsImg img = new BbsImg();
+						img.setImgElement(contentElement);
 						String imgUrl = contentElement.attr("original");
-						if(imgUrl != null) {
-							imgUrls.add(imgUrl);
-						}
+						img.setImgUrl(imgUrl);
 					}
 				}
 				comment.setImgUrls(imgUrls);
 				
 				// text
-				String text = element.toString()
-						.replace("<div class=\"bd\">", "")
-						.replace("</div>", "")
-						.replace("<br>", "\n");
+				String text = element.toString();
 				comment.setText(text);
 				
 				break;
@@ -156,27 +155,6 @@ public class MainActivity extends Activity {
 		}
 		
 		return comment;
-	}
-	
-	private boolean isUnAuthorComment(Element commentElement) {
-//<div class="item item-ht " 
-//			data-id="60" data-time="2008-08-31 18:39:00" data-replyid="5877745"><!-- 网友回复内容 -->
-//	<div class="hd f-cf">
-//     <p class="floor fc-gray">60楼</p>
-//     <h4 class="author"><a href="http://www.tianya.cn/m/home.jsp?uid=16142319">ljleyz</a>
-//     
-//     </h4>
-//     <p class="time fc-gray">2008-08-31 18:39</p>
-// </div>			
-//	<div class="bd">　　看着就想吃，不过不知道怎么做的，要能写出怎么做用什么料就好了<br></div>
-//	<div class="ft">
-//	
-//	</div>
-//	
-//</div>
-		String nodeName = commentElement.nodeName();
-		return nodeName.equals("div") && 
-				commentElement.attr("class").equals("item item-ht ");
 	}
 	
 	private boolean isAuthorComment(Element commentElement) {
@@ -198,8 +176,14 @@ public class MainActivity extends Activity {
 //
 //</div>
 		String nodeName = commentElement.nodeName();
-		return nodeName.equals("div") && 
-				commentElement.attr("class").equals("item item-ht  item-lz");
+		if(nodeName.equals("div")) {
+			String attr = commentElement.attr("class");
+			if(attr.contains("item-lz")) {
+				System.out.println(commentElement);
+				return true;
+			}
+		}
+		return false;
 	}
 
 }
