@@ -12,69 +12,119 @@ import org.jsoup.select.Elements;
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.android.volley.VolleyError;
 import com.boredream.volley.BDListener;
 import com.boredream.volley.BDVolleyHttp;
+import com.google.gson.Gson;
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshBase.OnLastItemVisibleListener;
+import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
+import com.handmark.pulltorefresh.library.PullToRefreshListView;
 
 public class MainActivity extends Activity {
 	
-	private ListView lv_comments;
+	private TextView tv_title;
+	private TextView tv_page;
+	private PullToRefreshListView plv_comments;
 	
-	private int page = 1;
+	private int curPage = 1;
 	private String authorName;
-	
+	private BbsCommentAdapter adapter;
 	private ArrayList<BbsComment> comments = new ArrayList<BbsComment>();
 	
 	// 贴图帖子
-	String url = "http://bbs.tianya.cn/post-no04-2610476-"+page+".shtml";
-//	// 会做饭男人的生活
-//	String url = "http://bbs.tianya.cn/post-96-564625-"+page+".shtml";
+//	String url = "http://bbs.tianya.cn/post-no04-2610476-"+page+".shtml";
+	// 会做饭男人的生活
+	String bbsUrl = "http://bbs.tianya.cn/post-96-564625-[page].shtml";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		loadUrl(url);
-		
-		lv_comments = (ListView) findViewById(R.id.lv_comments);
-		
+		initView();
+		loadUrl(1);
 	}
 
-	private void loadUrl(String url) {
-		BDVolleyHttp.getString(url, new BDListener<String>() {
+	private void initView() {
+		tv_title = (TextView) findViewById(R.id.tv_title);
+		tv_page = (TextView) findViewById(R.id.tv_page);
+		plv_comments = (PullToRefreshListView) findViewById(R.id.plv_comments);
+		adapter = new BbsCommentAdapter(MainActivity.this, comments);
+		plv_comments.setAdapter(adapter);
+		plv_comments.getRefreshableView().setFastScrollEnabled(true);
+		
+		plv_comments.setOnRefreshListener(new OnRefreshListener<ListView>() {
+
+			@Override
+			public void onRefresh(PullToRefreshBase<ListView> refreshView) {
+				loadUrl(1);
+			}
+		});
+		
+		plv_comments.setOnLastItemVisibleListener(new OnLastItemVisibleListener() {
+
+			@Override
+			public void onLastItemVisible() {
+				loadUrl(curPage + 1);
+			}
+		});
+	}
+
+	private void loadUrl(final int page) {
+		String pageUrl = bbsUrl.replace("[page]", page+"");
+		System.out.println("load url = " + pageUrl);
+		BDVolleyHttp.getString(pageUrl, new BDListener<String>() {
 			
 			@Override
 			public void onErrorResponse(VolleyError error) {
-				
+				plv_comments.onRefreshComplete();
 			}
 			
 			@Override
 			public void onResponse(String response) {
+				plv_comments.onRefreshComplete();
+				
+				if(page == 1) {
+					comments.clear();
+				}
+				curPage = page;
+				tv_page.setText("共加载"+curPage+"页");
+				
 				Document parse = Jsoup.parse(response);
 				
+				boolean hasAuthor = false;
 				Elements allElements = parse.getAllElements();
 				for(int i=0; i<allElements.size(); i++) {
 					Element element = allElements.get(i);
 					String nodeName = element.nodeName();
 					String data = element.data();
-//					if(nodeName.equals("script") && data.contains("bbsGlobal")) {
-//						String json = getJson(data);
-//						BbsGlobal bbsGlobal = new Gson().fromJson(json, BbsGlobal.class);
-//						page = bbsGlobal.getPage();
-//						authorName = bbsGlobal.getAuthorName();
-//					}
+					if(nodeName.equals("script") && data.contains("bbsGlobal")) {
+						String json = getJson(data);
+						BbsGlobal bbsGlobal = new Gson().fromJson(json, BbsGlobal.class);
+						authorName = bbsGlobal.getAuthorName();
+						
+						tv_title.setText(bbsGlobal.getTitle());
+					}
 					
 					if(isAuthorComment(element)) {
 						BbsComment comment = parseBbsComment(element);
-						if(comment != null) {
+						if(comment != null && !comments.contains(comment)) {
 							comments.add(comment);
 						}
+						
+						hasAuthor = true;
 					}
 				}
 				
-				lv_comments.setAdapter(new CommentAdapter(MainActivity.this, comments));
+				// 如果当前页没有楼主发言,自动加载下一页
+				if(!hasAuthor) {
+					loadUrl(curPage + 1);
+				} else {
+					adapter.notifyDataSetChanged();
+				}
 			}
 		});
 	}
@@ -133,21 +183,35 @@ public class MainActivity extends Activity {
 				comment = new BbsComment();
 				
 				// img
-				ArrayList<String> imgUrls = new ArrayList<String>();
+				int imgStart = -1;
+				int imgEnd = 0;
+				ArrayList<BbsImg> imgUrls = new ArrayList<BbsImg>();
 				Elements allContentElement = element.getAllElements();
 				for(int j=0; j<allContentElement.size(); j++) {
 					Element contentElement = allContentElement.get(j);
 					if(contentElement.nodeName().equals("img")) {
+						if(imgStart == -1) {
+							imgStart = element.toString().indexOf(contentElement.toString());
+						}
+						
+						imgEnd = element.toString().indexOf(contentElement.toString())
+								+ contentElement.toString().length();
+						
 						BbsImg img = new BbsImg();
 						img.setImgElement(contentElement);
 						String imgUrl = contentElement.attr("original");
 						img.setImgUrl(imgUrl);
+						imgUrls.add(img);
 					}
 				}
 				comment.setImgUrls(imgUrls);
 				
 				// text
 				String text = element.toString();
+				// remove <image> + <br>
+				if (imgStart != -1) {
+					text = text.substring(0, imgStart) + text.substring(imgEnd);
+				}
 				comment.setText(text);
 				
 				break;
@@ -156,7 +220,7 @@ public class MainActivity extends Activity {
 		
 		return comment;
 	}
-	
+
 	private boolean isAuthorComment(Element commentElement) {
 //<div class="item item-ht  item-lz" 
 //		data-id="10" data-time="2008-08-30 17:26:00" data-replyid="5876579"><!-- 网友回复内容 -->
@@ -179,7 +243,7 @@ public class MainActivity extends Activity {
 		if(nodeName.equals("div")) {
 			String attr = commentElement.attr("class");
 			if(attr.contains("item-lz")) {
-				System.out.println(commentElement);
+//				System.out.println(commentElement);
 				return true;
 			}
 		}

@@ -25,7 +25,7 @@ public class BbsComment {
 	//
 	// </div>
 	private String text;
-	private ArrayList<String> imgUrls;
+	private ArrayList<BbsImg> imgUrls;
 
 	public String getText() {
 		return text;
@@ -35,11 +35,11 @@ public class BbsComment {
 		this.text = text;
 	}
 
-	public ArrayList<String> getImgUrls() {
+	public ArrayList<BbsImg> getImgUrls() {
 		return imgUrls;
 	}
 
-	public void setImgUrls(ArrayList<String> imgUrls) {
+	public void setImgUrls(ArrayList<BbsImg> imgUrls) {
 		this.imgUrls = imgUrls;
 	}
 

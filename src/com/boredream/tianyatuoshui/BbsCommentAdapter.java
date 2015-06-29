@@ -5,9 +5,8 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.text.Html;
-import android.text.Html.ImageGetter;
+import android.text.Spanned;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -18,15 +17,15 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
-public class CommentAdapter extends BaseAdapter {
+public class BbsCommentAdapter extends BaseAdapter {
 	
 	private Context context;
 	private ArrayList<BbsComment> comments;
 	private ImageLoader imageLoader;
 	
-	public CommentAdapter(Context context, ArrayList<BbsComment> comments) {
+	public BbsCommentAdapter(Context context, ArrayList<BbsComment> comments) {
 		this.context = context;
 		this.comments = comments;
 		this.imageLoader = ImageLoader.getInstance();
@@ -54,7 +53,7 @@ public class CommentAdapter extends BaseAdapter {
 			holder = new ViewHolder();
 			convertView = View.inflate(context, R.layout.item_comment, null);
 			holder.ll_imgs = (LinearLayout) convertView.findViewById(R.id.ll_imgs);
-			holder.tv_text = (TextView) convertView.findViewById(R.id.tv_text);
+			holder.tv_text = (TextView) convertView.findViewById(R.id.tv_title);
 			convertView.setTag(holder);
 		} else {
 			holder = (ViewHolder) convertView.getTag();
@@ -63,24 +62,15 @@ public class CommentAdapter extends BaseAdapter {
 		// bind data
 		BbsComment comment = getItem(position);
 		
-		Html.fromHtml(comment.getText(), new ImageGetter() {
-			
-			@Override
-			public Drawable getDrawable(String source) {
-				return null;
-			}
-		}, null);
-		
-		
-		ArrayList<String> imgUrls = comment.getImgUrls();
+		ArrayList<BbsImg> bbsImgs = comment.getImgUrls();
 
 		holder.ll_imgs.removeAllViews();
-		for(String imgUrl : imgUrls) {
+		for(BbsImg img : bbsImgs) {
 			final ImageView iv = new ImageView(context);
 			final int ivWidth = DisplayUtils.getScreenWidthPixels((Activity)context)
 					- 2 * DisplayUtils.dp2px(context, 16);
 			
-			imageLoader.loadImage(imgUrl, new ImageLoadingListener() {
+			imageLoader.loadImage(img.getImgUrl(), new ImageLoadingListener() {
 				@Override
 				public void onLoadingStarted(String imageUri, View view) {
 					// TODO Auto-generated method stub
@@ -110,17 +100,17 @@ public class CommentAdapter extends BaseAdapter {
 			holder.ll_imgs.addView(iv);
 		}
 		
-		holder.tv_text.setText(Html.fromHtml(comment.getText().trim()));
+		holder.tv_text.setText(getContent(comment.getText().toString().trim()));
 		
 		return convertView;
 	}
 	
+	private Spanned getContent(String htmlContent) {
+		return Html.fromHtml(htmlContent);
+	}
+
 	static class ViewHolder {
 		public LinearLayout ll_imgs;
 		public TextView tv_text;
-	}
-
-	private void setContent(BbsComment comment) {
-		
 	}
 }
