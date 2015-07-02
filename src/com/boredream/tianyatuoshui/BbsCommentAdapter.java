@@ -15,20 +15,31 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
+import com.boredream.tianyatuoshui.PinnedSectionListView.PinnedSectionListAdapter;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
-public class BbsCommentAdapter extends BaseAdapter {
+public class BbsCommentAdapter extends BaseAdapter implements PinnedSectionListAdapter{
 	
 	private Context context;
-	private ArrayList<BbsComment> comments;
+	private ArrayList<BbsItem> comments;
 	private ImageLoader imageLoader;
 	
-	public BbsCommentAdapter(Context context, ArrayList<BbsComment> comments) {
+	public BbsCommentAdapter(Context context, ArrayList<BbsItem> comments) {
 		this.context = context;
 		this.comments = comments;
 		this.imageLoader = ImageLoader.getInstance();
+	}
+
+	@Override
+	public int getViewTypeCount() {
+		return 2;
+	}
+
+	@Override
+	public int getItemViewType(int position) {
+		return getItem(position).getType();
 	}
 
 	@Override
@@ -37,7 +48,7 @@ public class BbsCommentAdapter extends BaseAdapter {
 	}
 
 	@Override
-	public BbsComment getItem(int position) {
+	public BbsItem getItem(int position) {
 		return comments.get(position);
 	}
 
@@ -48,19 +59,48 @@ public class BbsCommentAdapter extends BaseAdapter {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		ViewHolder holder;
+		int itemViewType = getItemViewType(position);
+		return itemViewType == 1 ? 
+				getHeaderView(position, convertView) : 
+				getCommentView(position, convertView);
+	}
+
+	private View getHeaderView(int position, View convertView) {
+		ViewHolderHeader holder;
 		if(convertView == null) {
-			holder = new ViewHolder();
+			holder = new ViewHolderHeader();
+			convertView = View.inflate(context, R.layout.item_page_header, null);
+			holder.tv_header = (TextView) convertView.findViewById(R.id.tv_header);
+			convertView.setTag(holder);
+		} else {
+			holder = (ViewHolderHeader) convertView.getTag();
+		}
+		
+		// bind data
+		BbsPageHeader comment = (BbsPageHeader) getItem(position);
+		holder.tv_header.setText("第" + comment.getPageNumber() + "页");
+		
+		return convertView;
+	}
+	
+	static class ViewHolderHeader {
+		public TextView tv_header;
+	}
+	
+	private View getCommentView(int position, View convertView) {
+		ViewHolderComment holder;
+		if(convertView == null) {
+			holder = new ViewHolderComment();
 			convertView = View.inflate(context, R.layout.item_comment, null);
 			holder.ll_imgs = (LinearLayout) convertView.findViewById(R.id.ll_imgs);
 			holder.tv_text = (TextView) convertView.findViewById(R.id.tv_title);
 			convertView.setTag(holder);
 		} else {
-			holder = (ViewHolder) convertView.getTag();
+			holder = (ViewHolderComment) convertView.getTag();
 		}
 		
 		// bind data
-		BbsComment comment = getItem(position);
+		BbsComment comment = (BbsComment) getItem(position);
 		
 		ArrayList<BbsImg> bbsImgs = comment.getImgUrls();
 
@@ -101,7 +141,6 @@ public class BbsCommentAdapter extends BaseAdapter {
 		}
 		
 		holder.tv_text.setText(getContent(comment.getText().toString().trim()));
-		
 		return convertView;
 	}
 	
@@ -109,8 +148,13 @@ public class BbsCommentAdapter extends BaseAdapter {
 		return Html.fromHtml(htmlContent);
 	}
 
-	static class ViewHolder {
+	static class ViewHolderComment {
 		public LinearLayout ll_imgs;
 		public TextView tv_text;
+	}
+
+	@Override
+	public boolean isItemViewTypePinned(int viewType) {
+		return viewType == 1;
 	}
 }

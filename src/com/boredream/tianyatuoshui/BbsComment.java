@@ -2,7 +2,7 @@ package com.boredream.tianyatuoshui;
 
 import java.util.ArrayList;
 
-public class BbsComment {
+public class BbsComment extends BbsItem {
 	// <div class="item item-ht  item-lz"
 	// data-id="10" data-time="2008-08-30 17:26:00" data-replyid="5876579"><!--
 	// 网友回复内容 -->

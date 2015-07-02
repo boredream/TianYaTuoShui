@@ -21,18 +21,18 @@ import com.google.gson.Gson;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnLastItemVisibleListener;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
-import com.handmark.pulltorefresh.library.PullToRefreshListView;
 
 public class MainActivity extends Activity {
 	
 	private TextView tv_title;
 	private TextView tv_page;
-	private PullToRefreshListView plv_comments;
+	private PinnedPull2RefreshListView plv_comments;
 	
 	private int curPage = 1;
 	private String authorName;
 	private BbsCommentAdapter adapter;
-	private ArrayList<BbsComment> comments = new ArrayList<BbsComment>();
+	private ArrayList<BbsItem> bbsItems = new ArrayList<BbsItem>();
+	private boolean isLoading;
 	
 	// 贴图帖子
 //	String url = "http://bbs.tianya.cn/post-no04-2610476-"+page+".shtml";
@@ -51,8 +51,10 @@ public class MainActivity extends Activity {
 	private void initView() {
 		tv_title = (TextView) findViewById(R.id.tv_title);
 		tv_page = (TextView) findViewById(R.id.tv_page);
-		plv_comments = (PullToRefreshListView) findViewById(R.id.plv_comments);
-		adapter = new BbsCommentAdapter(MainActivity.this, comments);
+		plv_comments = (PinnedPull2RefreshListView) findViewById(R.id.plv_comments);
+		PinnedSectionListView lv = (PinnedSectionListView) plv_comments.getRefreshableView();
+		lv.setShadowVisible(false);
+		adapter = new BbsCommentAdapter(MainActivity.this, bbsItems);
 		plv_comments.setAdapter(adapter);
 		plv_comments.getRefreshableView().setFastScrollEnabled(true);
 		
@@ -74,24 +76,37 @@ public class MainActivity extends Activity {
 	}
 
 	private void loadUrl(final int page) {
+		if(isLoading == true) {
+			return;
+		}
+		
+		isLoading = true;
+		
 		String pageUrl = bbsUrl.replace("[page]", page+"");
 		System.out.println("load url = " + pageUrl);
 		BDVolleyHttp.getString(pageUrl, new BDListener<String>() {
 			
 			@Override
 			public void onErrorResponse(VolleyError error) {
+				isLoading = false;
 				plv_comments.onRefreshComplete();
 			}
 			
 			@Override
 			public void onResponse(String response) {
+				isLoading = false;
 				plv_comments.onRefreshComplete();
 				
 				if(page == 1) {
-					comments.clear();
+					bbsItems.clear();
 				}
 				curPage = page;
 				tv_page.setText("共加载"+curPage+"页");
+				
+				BbsPageHeader header = new BbsPageHeader();
+				header.setType(1);
+				header.setPageNumber(page);
+				bbsItems.add(header);
 				
 				Document parse = Jsoup.parse(response);
 				
@@ -111,8 +126,8 @@ public class MainActivity extends Activity {
 					
 					if(isAuthorComment(element)) {
 						BbsComment comment = parseBbsComment(element);
-						if(comment != null && !comments.contains(comment)) {
-							comments.add(comment);
+						if(comment != null && !bbsItems.contains(comment)) {
+							bbsItems.add(comment);
 						}
 						
 						hasAuthor = true;

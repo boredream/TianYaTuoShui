@@ -82,7 +82,6 @@ public class XmlUtil {
 	 * @param parentElement	发起递归的根element
 	 */
 	public static void getElements(Element parentElement) {
-		@SuppressWarnings("unchecked")
 		List<Element> elementList = parentElement.getAllElements();
 		for(Element element : elementList) {
 			elements.add(element);
@@ -112,7 +111,6 @@ public class XmlUtil {
 	 * @return
 	 */
 	public static boolean hasAttribute(Element element, String attrName) {
-		@SuppressWarnings("unchecked")
 		Attributes attributes = element.attributes();
 		for(Attribute attr : attributes) {
 			if(attrName.equals(attr.getKey())) {

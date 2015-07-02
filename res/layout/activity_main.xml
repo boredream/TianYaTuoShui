@@ -33,7 +33,7 @@
             android:textSize="12sp" />
     </LinearLayout>
 
-    <com.handmark.pulltorefresh.library.PullToRefreshListView
+    <com.boredream.tianyatuoshui.PinnedPull2RefreshListView
         android:id="@+id/plv_comments"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -41,6 +41,6 @@
         android:divider="#dfdfdf"
         android:dividerHeight="1dp"
         android:listSelector="@android:color/transparent" >
-    </com.handmark.pulltorefresh.library.PullToRefreshListView>
+    </com.boredream.tianyatuoshui.PinnedPull2RefreshListView>
 
 </LinearLayout>
