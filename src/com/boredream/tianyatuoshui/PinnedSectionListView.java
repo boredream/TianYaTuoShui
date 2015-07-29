@@ -87,7 +87,7 @@ public class PinnedSectionListView extends ListView {
 	private final OnScrollListener mOnScrollListener = new OnScrollListener() {
 
 		// boredream-view which need to hide
-		private View hideView;
+//		private View hideView;
 
 		@Override public void onScrollStateChanged(AbsListView view, int scrollState) {
 			if (mDelegateOnScrollListener != null) { // delegate
@@ -108,31 +108,33 @@ public class PinnedSectionListView extends ListView {
 
             final boolean isFirstVisibleItemSection =
                     isItemViewTypePinned(adapter, adapter.getItemViewType(firstVisibleItem));
-
+            
             if (isFirstVisibleItemSection) {
                 View sectionView = getChildAt(0);
                 if (sectionView.getTop() == getPaddingTop()) { // view sticks to the top, no need for pinned shadow
                     destroyPinnedShadow();
                 	// boredream-re show pinned item of list
-                	if(hideView != null && hideView.getVisibility() == View.INVISIBLE) {
-                		hideView.setVisibility(View.VISIBLE);
-                	}
+//                	if(hideView != null && hideView.getVisibility() == View.INVISIBLE) {
+//                		hideView.setVisibility(View.VISIBLE);
+//                	}
                 } else { // section doesn't stick to the top, make sure we have a pinned shadow
                     ensureShadowForPosition(firstVisibleItem, firstVisibleItem, visibleItemCount);
                     
                     // boredream-hide pinned item of list
-                    if(mPinnedSection != null
-                    		&& firstVisibleItem == mPinnedSection.position
-                    		&& sectionView.getTop() < 0) {
-                    	hideView = sectionView;
-                    	sectionView.setVisibility(View.INVISIBLE);
-                    }
+//                    if(mPinnedSection != null
+//                    		&& firstVisibleItem == mPinnedSection.position
+//                    		&& sectionView.getTop() < 0) {
+//                    	hideView = sectionView;
+//                    	sectionView.setVisibility(View.INVISIBLE);
+//                    }
                 }
+                System.out.println("isFirstVisibleItemSection=true " + 
+                		sectionView.getTop() + "==" + getPaddingTop());
             } else { // section is not at the first visible position
             	// boredream-re show pinned item of list
-            	if(hideView != null && hideView.getVisibility() == View.INVISIBLE) {
-            		hideView.setVisibility(View.VISIBLE);
-            	}
+//            	if(hideView != null && hideView.getVisibility() == View.INVISIBLE) {
+//            		hideView.setVisibility(View.VISIBLE);
+//            	}
             	
                 int sectionPosition = findCurrentSectionPosition(firstVisibleItem);
                 if (sectionPosition > -1) { // we have section position
@@ -140,6 +142,9 @@ public class PinnedSectionListView extends ListView {
                 } else { // there is no section for the first visible item, destroy shadow
                     destroyPinnedShadow();
                 }
+
+                System.out.println("isFirstVisibleItemSection=false " + 
+                		sectionPosition);
             }
 		};
 

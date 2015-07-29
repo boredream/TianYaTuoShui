@@ -5,18 +5,27 @@
     android:orientation="vertical"
     android:padding="16dp" >
 
-    <LinearLayout
-        android:id="@+id/ll_imgs"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" >
-    </LinearLayout>
-
     <TextView
         android:id="@+id/tv_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="#232323"
         android:textSize="14sp" />
+
+    <com.boredream.tianyatuoshui.WrapHeightListView
+        android:id="@+id/lv_imgs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:divider="@null"
+        android:dividerHeight="8dp" >
+    </com.boredream.tianyatuoshui.WrapHeightListView>
+
+    <LinearLayout
+        android:id="@+id/ll_imgs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+    </LinearLayout>
 
 </LinearLayout>
